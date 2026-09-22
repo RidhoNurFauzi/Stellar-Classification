@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./images/stellar.png" alt="Klasifikasi Objek Langit SDSS" width="100%">
+  <img src="./images/stellar.jpeg" alt="Klasifikasi Objek Langit SDSS" width="100%">
 </p>
 
 <h1 align="center">🌌 Klasifikasi Objek Langit: Bintang, Galaksi, dan Kuasar (SDSS DR17)</h1>
