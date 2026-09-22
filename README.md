@@ -1,11 +1,34 @@
-# 🌌 Klasifikasi Objek Langit: Bintang, Galaksi, dan Kuasar (SDSS DR17)
+<p align="center">
+  <img src="./images/stellar.png" alt="Klasifikasi Objek Langit SDSS" width="100%">
+</p>
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
-[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.0%2B-orange.svg)](https://scikit-learn.org/)
-[![XGBoost](https://img.shields.io/badge/XGBoost-1.5%2B-red.svg)](https://xgboost.readthedocs.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<h1 align="center">🌌 Klasifikasi Objek Langit: Bintang, Galaksi, dan Kuasar (SDSS DR17)</h1>
 
-Proyek klasifikasi *Machine Learning* end-to-end untuk mengelompokkan objek astronomi secara otomatis berdasarkan data fotometri dan spektroskopi dari **Sloan Digital Sky Survey (SDSS)** Data Release 17.
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg" alt="Python"></a>
+  <a href="https://scikit-learn.org/"><img src="https://img.shields.io/badge/Scikit--Learn-1.0%2B-orange.svg" alt="Scikit-Learn"></a>
+  <a href="https://xgboost.readthedocs.io/"><img src="https://img.shields.io/badge/XGBoost-1.5%2B-red.svg" alt="XGBoost"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+Proyek klasifikasi <em>Machine Learning</em> end-to-end untuk mengelompokkan objek astronomi secara otomatis berdasarkan data fotometri dan spektroskopi dari <strong>Sloan Digital Sky Survey (SDSS)</strong> Data Release 17.
+</p>
+
+---
+
+## 📑 Daftar Isi
+
+- [Ringkasan Eksekutif](#-ringkasan-eksekutif)
+- [Problem Definition & Context Astronomi](#-problem-definition--context-astronomi)
+- [Visualisasi Utama & Temuan Analisis](#️-visualisasi-utama--temuan-analisis)
+- [Perbandingan Kinerja Model](#-perbandingan-kinerja-model)
+- [Kesimpulan & Rekomendasi Arsitektur](#-kesimpulan--rekomendasi-arsitektur-two-stage-pipeline)
+- [Tech Stack & Alat](#️-tech-stack--alat)
+- [Struktur Proyek & Artefak](#-struktur-proyek--artefak)
+- [Cara Menjalankan Proyek](#-cara-menjalankan-proyek)
+- [Keterbatasan & Pengembangan Selanjutnya](#-keterbatasan--pengembangan-selanjutnya)
+- [Kontak](#-kontak)
 
 ---
 
@@ -38,6 +61,10 @@ Dari 17 fitur mentah, dilakukan **domain-specific feature selection**:
   * **Spektroskopi**: `redshift` (Pergeseran merah akibat ekspansi alam semesta).
 * **Fitur Tereliminasi (11 Kolom Metadata)**: `obj_ID`, `spec_obj_ID`, `alpha`, `delta`, `run_ID`, `rerun_ID`, `cam_col`, `field_ID`, `plate`, `MJD`, `fiber_ID` dieliminasi karena bersifat identifikasi instrumen/lokasi dan tidak merepresentasikan sifat fisik cahaya objek.
 
+### 3. Data Cleaning
+* Ditemukan **1 baris** dengan nilai sentinel rusak (`-9999`) pada fitur `u`, `g`, dan `z` — dihapus karena merupakan kegagalan pengukuran instrumen, bukan variasi fisik.
+* Sekitar **22,2% baris** memiliki `redshift` sangat kecil (`< 0,01`). Setelah ditelusuri lewat analisis `groupby` per kelas, nilai ini terbukti **valid** (97,26% berasal dari `STAR`, sesuai prinsip astronomi bahwa bintang berada dekat dan nyaris tidak mengalami pergeseran merah) — **dipertahankan**, tidak dihapus maupun diimputasi.
+
 ---
 
 ## 🖼️ Visualisasi Utama & Temuan Analisis
@@ -49,8 +76,6 @@ Dari 17 fitur mentah, dilakukan **domain-specific feature selection**:
 
 * **Pembersihan Data**: Data cleaning berhasil mengisolasi *outlier* pengukuran ekstrem pada fotometri (seperti nilai `-9999`) tanpa menghapus sampel `redshift` kecil ($z < 0,01$) yang secara domain merupakan ciri khas objek Bintang (`STAR`).
 
----
-
 ### 2. Evaluasi Model Terbaik (Random Forest & XGBoost)
 | Confusion Matrix (Random Forest) | Feature Importance (Random Forest) | ROC Curve (Random Forest) |
 |---|---|---|
@@ -59,9 +84,7 @@ Dari 17 fitur mentah, dilakukan **domain-specific feature selection**:
 * **Kebijakan Keputusan Fitur**: `redshift` mendominasi tingkat kepatuhan model (>80%), disusul oleh responsibilitas pita fotometri `u`, `g`, `z`, `r`, dan `i`.
 * **Metrik ROC-AUC**: Nilai $0,9958$ mengonfirmasi daya pisah yang hampir sempurna di seluruh rentang ambang batas *probability threshold*.
 
----
-
-### 3. Error Analysis Kuisar (`QSO` Terprediksi `GALAXY`)
+### 3. Error Analysis Kuasar (`QSO` Terprediksi `GALAXY`)
 | Color Index QSO Salah vs QSO Benar vs GALAXY | Sebaran Fitur Warna |
 |---|---|
 | ![Color Index](./images/Perbandingan%20Color%20Index%20QSO%20Salah%20vs%20QSO%20Benar%20vs%20GALAXY.png) | ![Fitur Warna](./images/Perbandingan%20Sebaran%20Fitur%20Warna%20QSO%20Salah%20vs%20QSO%20Benar%20vs%20GALAXY.png) |
@@ -88,7 +111,7 @@ Evaluasi lengkap pada data uji (20.000 sampel) dari baseline hingga model ensemb
 
 ## 💡 Kesimpulan & Rekomendasi Arsitektur (*Two-Stage Pipeline*)
 
-1. **Efektifitas Model**: Model *machine learning* berhasil melompati performa baseline naif secara signifikan (F1-Macro $0,25 \rightarrow 0,9761$).
+1. **Efektivitas Model**: Model *machine learning* berhasil melompati performa baseline naif secara signifikan (F1-Macro $0,25 \rightarrow 0,9761$).
 2. **Skema Arsitektur Murni vs Spektroskopi**:
    * **Stage 1 (Photometric Screening)**: Apabila data `redshift` belum tersedia, gunakan model berbasis fotometri murni (`u, g, r, i, z`) yang memiliki akurasi **87,00%** (*F1-macro* **0,84**) sebagai filter awal berbiaya komputasi rendah.
    * **Stage 2 (Spectroscopic Verification)**: Gunakan model utama **Random Forest Tuned** (akurasi **97,96%**) setelah pengamatan spektroskopi menghasilkan nilai `redshift`.
@@ -115,6 +138,7 @@ Evaluasi lengkap pada data uji (20.000 sampel) dari baseline hingga model ensemb
 │   ├── preprocessor.joblib
 │   └── label_encoder.joblib
 ├── images/                           # Hasil visualisasi & grafik proyek
+│   ├── stellar.png                   # Cover image proyek
 │   ├── Confusion Matrix Logistic Regression.png
 │   ├── Confusion Matrix Random Forest.png
 │   ├── Confusion Matrix XGBoost.png
@@ -135,4 +159,73 @@ Evaluasi lengkap pada data uji (20.000 sampel) dari baseline hingga model ensemb
 │   ├── scatter plot sebelum cleaning.png
 │   └── scatter plot setelah cleaning.png
 ├── klasifikasi_sdss.ipynb            # Jupyter Notebook pengerjaan utama
+├── requirements.txt                  # Daftar dependensi Python
 └── README.md
+```
+
+---
+
+## 🚀 Cara Menjalankan Proyek
+
+1. **Clone repository ini**
+   ```bash
+   git clone https://github.com/<username>/<nama-repo>.git
+   cd <nama-repo>
+   ```
+
+2. **Buat virtual environment (opsional tapi disarankan)**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate      # Linux/Mac
+   venv\Scripts\activate         # Windows
+   ```
+
+3. **Install dependensi**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Jalankan notebook**
+   ```bash
+   jupyter notebook klasifikasi_sdss.ipynb
+   ```
+   Jalankan seluruh sel secara berurutan (`Kernel → Restart & Run All`) untuk mereproduksi seluruh hasil analisis, evaluasi, dan artefak model dari awal.
+
+5. **Memuat model yang sudah dilatih (tanpa training ulang)**
+   ```python
+   import joblib
+
+   model = joblib.load('models/model_random_forest_final.joblib')
+   preprocessor = joblib.load('models/preprocessor.joblib')
+   le = joblib.load('models/label_encoder.joblib')
+
+   # data_baru harus punya kolom: u, g, r, i, z, redshift
+   data_scaled = preprocessor.transform(data_baru)
+   prediksi = le.inverse_transform(model.predict(data_scaled))
+   ```
+
+**Sumber Dataset:** [Stellar Classification Dataset - SDSS17 (Kaggle)](https://www.kaggle.com/datasets/fedesoriano/stellar-classification-dataset-sdss17)
+
+---
+
+## ⚠️ Keterbatasan & Pengembangan Selanjutnya
+
+1. Kesalahan klasifikasi terkonsentrasi pada area perbatasan *low-redshift* ($z \approx 0,60$); analisis lebih lanjut bisa memanfaatkan **SHAP values** untuk interpretabilitas per-sampel.
+2. Model berbasis `redshift` membutuhkan data spektroskopi yang relatif mahal dan lambat diukur dibanding data fotometri murni.
+3. *Hyperparameter tuning* baru difokuskan pada Random Forest; belum mencakup penyesuaian mendalam pada Logistic Regression maupun XGBoost.
+4. Evaluasi dilakukan pada satu skema *train-test split* 80:20 (didukung *cross-validation*); belum diuji pada data dari rilis/periode observasi SDSS eksternal lain.
+5. Pengembangan lanjutan: ekstraksi fitur rasio non-linear atau pemodelan khusus untuk zona *low-redshift* guna memperbaiki recall kelas `QSO`.
+
+---
+
+## 📬 Kontak
+
+**Ridho Nur Fauzi**
+ML/DL Engineer & Data Scientist
+
+* 🌐 Portfolio: [ridhonurfauzi.netlify.app](https://ridhonurfauzi.netlify.app/)
+* 💼 Terbuka untuk diskusi kolaborasi proyek data science & machine learning
+
+---
+
+<p align="center"><em>Dibuat sebagai bagian dari proyek pembelajaran mendalam Data Science & Machine Learning menggunakan dataset astronomi SDSS DR17.</em></p>
